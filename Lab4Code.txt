@@ -1,0 +1,108 @@
+Library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use IEEE.std_logic_unsigned.all;
+entity CODEC is
+ port(DIN: in STD_LOGIC_VECTOR(11 downto 0);
+ DOUT: out STD_LOGIC_VECTOR(11 downto 0));
+end;
+architecture SCHEMATIC of CODEC is
+ signal CONNECT : STD_LOGIC_VECTOR(7 downto 0);
+ component CODER
+ port(DATA: in STD_LOGIC_VECTOR(11 downto 0);
+ DOUT: out STD_LOGIC_VECTOR(7 downto 0));
+ end component;
+ component DECODER
+ port(DATA: in STD_LOGIC_VECTOR(7 downto 0);
+ DOUT: out STD_LOGIC_VECTOR(11 downto 0));
+ end component;
+begin
+ CODE: CODER Port Map (DIN, CONNECT);
+ DECODE: DECODER Port Map (CONNECT, DOUT);
+end SCHEMATIC;
+-------------------------------------------------------------------------------------------------------------
+-- TEMP_DATA is the input data (if the sign is 1, TEMP_DATA is inverted)
+--
+-- TEMP_DATA = gives as DOUT:
+-- 0000000wxyz s000wxyz
+-- 0000001wxyz s001wxyz
+-- 000001wxyza s010wxyz
+-- 00001wxyzab s011wxyz
+-- 0001wxyzabc s100wxyz
+-- 001wxyzabcd s101wxyz
+-- 01wxyzabcde s110wxyz
+-- 1wxyzabcdef s111wxyz
+Library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use IEEE.std_logic_unsigned.all;
+LABS 19
+entity CODER is
+ port(DATA: in STD_LOGIC_VECTOR(11 downto 0);
+ DOUT: out STD_LOGIC_VECTOR(7 downto 0));
+end;
+architecture LOGIC of CODER is
+begin
+ process(DATA)
+ variable TEMP_DATA : STD_LOGIC_VECTOR(10 downto 0);
+ variable SIGN : STD_LOGIC;
+ variable EXP : STD_LOGIC_VECTOR(2 downto 0);
+ begin
+ SIGN := DATA(11);
+ if (SIGN = ’0’) then
+ TEMP_DATA(10 downto 0) := DATA(10 downto 0);
+ else
+ TEMP_DATA(10 downto 0) := not DATA(10 downto 0);
+ end if;
+ EXP := "111";
+ for I in 6 downto 0 loop
+ if (TEMP_DATA(I+4) = ’1’) then-- check for the first 1
+ EXP := CONV_STD_LOGIC_VECTOR(CONV_UNSIGNED(I,3),3);
+ TEMP_DATA(3 downto 0) := SHR(TEMP_DATA, EXP)(3 downto 0);
+ exit;
+ end if;
+ end loop;
+ DOUT(7) <= SIGN;
+ DOUT(6 downto 4) <= EXP;
+ DOUT(3 downto 0) <= TEMP_DATA(3 downto 0);
+ end process;
+end LOGIC;
+--------------------------------------------------------------------------------
+-- TEMP_DATA= for input DATA=
+-- 0000000wxyz s111wxyz
+-- 0000001wxyz s000wxyz
+-- 000001wxyza s001wxyz
+-- 00001wxyzab s010wxyz
+-- 0001wxyzabc s011wxyz
+-- 001wxyzabcd s100wxyz
+-- 01wxyzabcde s101wxyz
+-- 1wxyzabcdef s110wxyz
+--
+LABS 20
+-- The result is inverted if the sign bit (s) is 1
+Library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.std_logic_arith.all;
+use IEEE.std_logic_unsigned.all;
+entity DECODER is
+ port(DATA: in STD_LOGIC_VECTOR(7 downto 0);
+ DOUT: out STD_LOGIC_VECTOR(11 downto 0));
+end;
+architecture LOGIC of DECODER is
+begin
+ process(DATA)
+ variable TEMP_DATA : STD_LOGIC_VECTOR(10 downto 0);
+ variable SIGN : STD_LOGIC;
+ variable EXP : STD_LOGIC_VECTOR(2 downto 0);
+ begin
+ SIGN := DATA(7);
+ EXP := DATA(6 downto 4);
+ TEMP_DATA(3 downto 0) := DATA(3 downto 0);
+ -- Check the EXP
+ -- if it is 111...
+ -- if not, shift the data...
+ -- If SIGN = 1 complement the data
+ DOUT(11) <= SIGN;
+ DOUT(10 downto 0) <= TEMP_DATA;
+ end process;
+end LOGIC;
