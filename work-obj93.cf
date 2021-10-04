@@ -1,7 +1,0 @@
-v 4
-file . "jkff_tb.vhdl" "4529cf857f5f4a959c4af9aa96751f85cfb66cd9" "20211004230913.087":
-  entity jkff_tb at 1( 0) + 0 on 24;
-  architecture testbench of jkff_tb at 7( 82) + 0 on 25;
-file . "jkff.vhdl" "1d67c7bf2a6d2a4087827ede1a68f1642bee052e" "20211004230405.646":
-  entity jkff at 1( 0) + 0 on 20;
-  architecture behavioral of jkff at 10( 146) + 0 on 21;
